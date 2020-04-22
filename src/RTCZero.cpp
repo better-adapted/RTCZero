@@ -17,6 +17,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
+// https://forum.arduino.cc/index.php?topic=617395.15 - clunky sync when waking up from sleep?
+
 #include <time.h>
 
 #include "RTCZero.h"
@@ -421,7 +423,7 @@ void RTCZero::setEpoch(uint32_t ts)
     time_t t = ts;
     struct tm* tmp = gmtime(&t);
 
-    RTC_MODE2_CLOCK_Type clockTime;
+    volatile RTC_MODE2_CLOCK_Type clockTime;
 
     clockTime.bit.YEAR = tmp->tm_year - EPOCH_TIME_YEAR_OFF;
     clockTime.bit.MONTH = tmp->tm_mon + 1;
@@ -520,3 +522,24 @@ void RTCZero::RTCresetRemove()
   while (RTCisSyncing())
     ;
 }
+
+void RTCZero::Get_TimeDate_String(String &str_temp)
+{
+	char temp[100];
+	sprintf(temp,"%02d:%02d:%02d,%02d/%02d/%02d",getHours(),getMinutes(),getSeconds(),getDay(),getMonth(),getYear()+2000);
+	
+	str_temp = temp;
+}
+
+void RTCZero::SetAlarmSecsFromNow(uint32_t pSecs)
+{
+	disableAlarm();
+	
+	uint32_t epoch_raw = getEpoch();
+	
+	time_t rawtime = epoch_raw += pSecs;
+	
+	enableAlarm(Alarm_Match::MATCH_YYMMDDHHMMSS);	
+	setAlarmEpoch(rawtime);
+}
+

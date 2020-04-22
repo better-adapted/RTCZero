@@ -101,6 +101,10 @@ public:
     return _configured;
   }
 
+	void Get_TimeDate_String(String &str_temp);
+	
+	void SetAlarmSecsFromNow(uint32_t pSecs);
+	
 private:
   bool _configured;
 
